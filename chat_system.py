@@ -1,50 +1,26 @@
-# chat_system.py
 import streamlit as st
+from evidence import fetch_all_evidence
 from llm_core import answer_with_constraints
 
-# Set page title
-st.set_page_config(page_title="Objective Scientific AI", page_icon="🧪")
+st.set_page_config(page_title="Objective Scientific AI")
+
 st.title("Objective Scientific AI")
-st.write("Ask a scientific question and get evidence-based answers with sources.")
+st.caption("Evidence-based answers only. No speculation.")
 
-# Input field for the scientific question
-question = st.text_input("Enter your scientific question:")
+question = st.text_input("Enter a scientific question")
 
-# Example evidence chunks for demonstration
-# Each dict must have 'text', 'title', 'link'
-# Replace with actual evidence retrieval logic
-example_evidence = [
-    {
-        "title": "Fasting and Metabolic Health",
-        "link": "https://www.ncbi.nlm.nih.gov/pubmed/123456",
-        "text": "Intermittent fasting improves insulin sensitivity and reduces body fat in adults."
-    },
-    {
-        "title": "Effects of Fasting on Longevity",
-        "link": "https://www.sciencedirect.com/science/article/pii/7890123",
-        "text": "Caloric restriction and fasting may extend lifespan in animal studies, with some translational evidence in humans."
-    }
-]
+if st.button("Ask") and question:
+    try:
+        with st.spinner("Gathering evidence..."):
+            evidence = fetch_all_evidence(question)
 
-if question:
-    st.info(f"Fetching evidence for: {question} ...")
-    
-    # Here you would replace example_evidence with your actual evidence-fetching code
-    evidence_chunks = example_evidence
+        with st.spinner("Analyzing evidence..."):
+            answer = answer_with_constraints(question, evidence)
 
-    st.info("Generating summary answer...")
-    
-    answer = answer_with_constraints(question, evidence_chunks)
-    
-    st.subheader("Summary Answer")
-    st.write(answer)
+        st.markdown(answer)
 
-    st.subheader("Sources")
-    if evidence_chunks:
-        for idx, ev in enumerate(evidence_chunks, 1):
-            title = ev.get("title", "Untitled")
-            link = ev.get("link", "#")
-            st.markdown(f"{idx}. [{title}]({link})")
-    else:
-        st.write("No sources available.")
+    except Exception:
+        st.error(
+            "Sorry — I don’t have enough information to give you a solid conclusion."
+        )
 
