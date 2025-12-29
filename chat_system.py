@@ -1,63 +1,50 @@
 # chat_system.py
-import os
 import streamlit as st
-import requests
 from llm_core import answer_with_constraints
-from xml.etree import ElementTree as ET
 
-st.set_page_config(page_title="Objective Scientific AI", layout="wide")
+# Set page title
+st.set_page_config(page_title="Objective Scientific AI", page_icon="🧪")
 st.title("Objective Scientific AI")
 st.write("Ask a scientific question and get evidence-based answers with sources.")
 
+# Input field for the scientific question
 question = st.text_input("Enter your scientific question:")
 
+# Example evidence chunks for demonstration
+# Each dict must have 'text', 'title', 'link'
+# Replace with actual evidence retrieval logic
+example_evidence = [
+    {
+        "title": "Fasting and Metabolic Health",
+        "link": "https://www.ncbi.nlm.nih.gov/pubmed/123456",
+        "text": "Intermittent fasting improves insulin sensitivity and reduces body fat in adults."
+    },
+    {
+        "title": "Effects of Fasting on Longevity",
+        "link": "https://www.sciencedirect.com/science/article/pii/7890123",
+        "text": "Caloric restriction and fasting may extend lifespan in animal studies, with some translational evidence in humans."
+    }
+]
+
 if question:
-    st.info(f"Fetching top evidence for: '{question}' ...")
+    st.info(f"Fetching evidence for: {question} ...")
     
-    try:
-        # Fetch top 5 PubMed article IDs
-        search_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi"
-        search_params = {
-            "db": "pubmed",
-            "term": question,
-            "retmode": "json",
-            "retmax": 5
-        }
-        search_resp = requests.get(search_url, params=search_params)
-        search_data = search_resp.json()
-        pmids = search_data["esearchresult"]["idlist"]
-        
-        evidence_texts = []
-        sources = []
-        
-        for pmid in pmids:
-            fetch_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi"
-            fetch_params = {"db": "pubmed", "id": pmid, "retmode": "xml"}
-            fetch_resp = requests.get(fetch_url, params=fetch_params)
-            
-            # Parse XML to extract abstract
-            root = ET.fromstring(fetch_resp.text)
-            abstract_texts = []
-            for abstract in root.findall(".//AbstractText"):
-                abstract_texts.append("".join(abstract.itertext()))
-            combined_abstract = "\n".join(abstract_texts)
-            
-            if combined_abstract.strip():
-                evidence_texts.append(combined_abstract)
-                sources.append(f"https://pubmed.ncbi.nlm.nih.gov/{pmid}/")
-        
-        combined_evidence = "\n\n".join(evidence_texts)
-        
-        st.info("Generating evidence-based answer...")
-        answer = answer_with_constraints(question, combined_evidence)
-        
-        st.subheader("Answer:")
-        st.write(answer)
-        
-        st.subheader("Sources:")
-        for link in sources:
-            st.write(f"[{link}]({link})")
-            
-    except Exception as e:
-        st.error(f"Error fetching evidence or generating answer: {e}")
+    # Here you would replace example_evidence with your actual evidence-fetching code
+    evidence_chunks = example_evidence
+
+    st.info("Generating summary answer...")
+    
+    answer = answer_with_constraints(question, evidence_chunks)
+    
+    st.subheader("Summary Answer")
+    st.write(answer)
+
+    st.subheader("Sources")
+    if evidence_chunks:
+        for idx, ev in enumerate(evidence_chunks, 1):
+            title = ev.get("title", "Untitled")
+            link = ev.get("link", "#")
+            st.markdown(f"{idx}. [{title}]({link})")
+    else:
+        st.write("No sources available.")
 
