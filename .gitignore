@@ -1,0 +1,6 @@
+venv/
+__pycache__/
+*.pyc
+pdf_studies/
+.DS_Store
+.streamlit/secrets.toml # Keep secrets local
