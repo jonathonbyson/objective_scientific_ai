@@ -46,4 +46,3 @@ Provide:
     )
 
     return response.choices[0].message.content + f"\n\nConfidence score: {confidence:.2f}"
-

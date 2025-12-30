@@ -10,3 +10,4 @@ def compute_confidence(evidence_text):
 
     return min(score, 1.0)
 
+
